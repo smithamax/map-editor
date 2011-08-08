@@ -201,7 +201,7 @@ $(function() {
 			this.forEach(function(sqr) {
 				out.push(JSON.parse(JSON.stringify(sqr,['x','y','typeint'])));
 			});
-			return JSON.stringify(out).replace(/\}\,/g,"},\n");
+			return out;
 		}
 	};
 	// constructor constructor - inception!!
@@ -382,17 +382,22 @@ $(function() {
 	exporter.getCSV = function(grid) {
 		var ary = grid.getArray();
 		var out = '';
-		for (var x = 0; x < ary.length; x++) {
-			for (var y = 0; y < ary[x].length-1; y++) {
+		
+		if(!ary.length) return '';
+
+		for (var y = 0; y < ary[0].length; y++) {
+			for (var x = 0; x < ary.length-1; x++) {
 				out += ary[x][y] +",";
 			}
-			out += ary[x][ary[x].length-1]+"\n";
+			out += ary[ary.length-1][y]+"\n";
 		}
 		return out;
 	};
 	exporter.getCSV.ext = ".csv";
 
-	exporter.getJSON = function(grid) {return JSON.stringify(grid);};
+	exporter.getJSON = function(grid) {
+		return JSON.stringify(grid);
+	};
 	exporter.getJSON.ext = ".json";
 
 	exporter.getIntArray = function(grid) {
@@ -414,7 +419,7 @@ $(function() {
 		window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder ||
 							window.MozBlobBuilder;
 	
-		var bb = new BlobBuilder();
+		var bb = new window.BlobBuilder();
 		bb.append(input);
 		return window.URL.createObjectURL(bb.getBlob(MIME_TYPE));
 	
@@ -424,6 +429,9 @@ $(function() {
 	exporter.destroyFile = function(url) {
 		window.URL.revokeObjectURL(url);
 	};
+
+	// this is a massive peice of shit
+	// tried to be a smart ass and it kind of worked but mostly sucks
 	exporter.createLink = function(grid, stringer) {
 		var MIME_TYPE = 'text/plain';
 
