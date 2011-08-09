@@ -1,22 +1,23 @@
-/*jshint browser: true, jquery: true */
+/*jshint browser: true, jquery: true, white: true, maxerr: 5*/
 
 
-$(function() {
+$(function () {
 	var layer0 = document.getElementById("layer0");
 	var ctx0 = layer0.getContext("2d");
+	ctx0.topleft = {x: 0, y: 0};
+
 	var $layer0 = $(layer0);
 	var doc = $(document);
-	var DRAG_KEY = Key.SPACE;
+	var DRAG_KEY = 32; //Key.SPACE;
 	var UNIT = 24;
 	var mode = 'edit';
 	var hardmode = 'edit';
-	var topleft = {x:0,y:0};
 	var currentTile;
 
 	//UI base element
-	function UiListElement(){
+	function UiListElement() {
 		this.domElement = $('<ul>');
-		this.addLi = function(content) {
+		this.addLi = function (content) {
 			var li = $('<li>');
 			li.append($(content));
 			this.domElement.append(li);
@@ -24,65 +25,41 @@ $(function() {
 	}
 
 
-	//Tiles
-	var tiles = [];
-	
-	tiles.ui = new UiListElement();
-	
-	tiles.addTile = function(tile){
-		var image;
-		tile.typeint = this.length;
-		this.push(tile);
-
-		if(tile.img){
-			image = tile.img;
-		}else{
-			image = document.createElement('canvas');
-			image.width = image.height = UNIT;
-			tile.draw(image.getContext('2d'));
-		}
-		this.ui.addLi(image);
-		$(image).click(function() {
-			currentTile = tile;
-			$(this).parent().addClass("selected").siblings().removeClass("selected");
-		});
-	};
-
 	//Minimap
 	var minimap = {
 		canvas: document.createElement('canvas'),
 		viewbox: document.createElement('canvas'),
-		redraw: function() {
-			this.canvas.width = layer0.width/UNIT;
-			this.canvas.height = layer0.height/UNIT;
-			this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+		redraw: function () {
+			this.canvas.width = layer0.width / UNIT;
+			this.canvas.height = layer0.height / UNIT;
+			this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 			this.ctx.save();
-			this.ctx.drawImage(layer0,0,0,this.canvas.width,this.canvas.height);
+			this.ctx.drawImage(layer0, 0, 0, this.canvas.width, this.canvas.height);
 			this.ctx.restore();
 			this.rebox();
 		},
-		rebox: function() {
-			this.viewbox.width = Math.ceil(doc.width()/UNIT);
-			this.viewbox.height = Math.ceil(doc.height()/UNIT);
+		rebox: function () {
+			this.viewbox.width = Math.ceil(doc.width() / UNIT);
+			this.viewbox.height = Math.ceil(doc.height() / UNIT);
 			var ctx = this.viewbox.getContext('2d');
 
-			ctx.clearRect(0,0,this.viewbox.width,this.viewbox.height);
+			ctx.clearRect(0, 0, this.viewbox.width, this.viewbox.height);
 			ctx.save();
 			ctx.strokeStyle = 'red';
 			ctx.lineWidth = 1.0;
 			ctx.lineJoin = 'miter';
-			ctx.rect(0,0,this.viewbox.width,this.viewbox.height);
+			ctx.rect(0, 0, this.viewbox.width, this.viewbox.height);
 			ctx.stroke();
 			ctx.restore();
 
 			this.movebox();
 
 		},
-		movebox: function(){
+		movebox: function () {
 			var p = $layer0.offset();
 			$(this.viewbox).css('position', 'absolute');
-			$(this.viewbox).css('left',-p.left/UNIT);
-			$(this.viewbox).css('top',-p.top/UNIT);
+			$(this.viewbox).css('left', -p.left / UNIT);
+			$(this.viewbox).css('top', -p.top / UNIT);
 		}
 	};
 
@@ -91,123 +68,74 @@ $(function() {
 		.append(minimap.viewbox);
 	minimap.ctx = minimap.canvas.getContext('2d');
 
-	//UI builder
-	var UI = {
-		tools: {
-			tiles:tiles.ui,
-			title: "Tools"
-		},
-		minimap:{
-			title:"MINIMAP",
-			minimap:minimap
-		}
-	};
-
-	function setupUI(UI){
-		var $overlay = $("#overlay");
-		var id, obj, el, h = 2;
-
-		var process = function(el, obj, id, h){
-			if(obj.domElement){
-				el.append(obj.domElement);
-			}else{
-				if(obj.title){
-					el.append($('<h'+h+'>'+obj.title+'</h'+h+'>'));
-				}
-				for(var subid in obj){
-					if(obj[subid] !== obj.title){
-						process(el,obj[subid],subid, h+1);
-					}
-				}
-			}
-		};
-
-		for(id in UI){
-			obj = UI[id];
-			if(obj.domElement){
-				el = obj.domElement;
-			}else{
-				if(obj.title){
-					el = $('<aside id="'+id+'">');
-				}else{
-					el = $('<div id="'+id+'">');
-				}
-				process(el, obj, id, h);
-			}
-			$overlay.append(el);
-		}
-	}
-	setupUI(UI);
-
-	$( "#overlay > aside" ).draggable({ handle: 'h2' });
-
 	// size canvas
 	layer0.width = doc.width();
 	layer0.height = doc.height();
 
 
-	function unitify (n) {
-		return Math.floor(n/UNIT);
+	function unitify(n) {
+		return Math.floor(n / UNIT);
 	}
 
-	function Grid () {
+	function Grid() {
 		this.grid = {};
 	}
 	Grid.prototype = {
-		addSquare: function(sqr) {
-			this.grid[sqr.x+"x"+sqr.y] = sqr;
+		addSquare: function (sqr) {
+			this.grid[sqr.x + "x" + sqr.y] = sqr;
 		},
-		squareAt: function(x,y){
-			return this.grid[x+"x"+y];
+		squareAt: function (x, y) {
+			return this.grid[x + "x" + y];
 		},
-		removeSquare: function(x,y){
-			delete this.grid[x+"x"+y];
+		removeSquare: function (x, y) {
+			delete this.grid[x + "x" + y];
 		},
-		forEach: function(callback) {
-			for(var s in this.grid){
-				callback(this.grid[s],s,this.grid);
+		forEach: function (callback) {
+			for (var s in this.grid) {
+				callback(this.grid[s], s, this.grid);
 			}
 		},
-		draw: function(ctx){
-			this.forEach(function(sqr) {
+		draw: function (ctx) {
+			this.forEach(function (sqr) {
 				sqr.draw(ctx);
 			});
 		},
-		getArray: function() {
+		getArray: function () {
 			var minx = 1e99, miny = 1e99, maxx = -1e99, maxy = -1e99;
 			var out = [], csqr;
-			this.forEach(function(sqr) {
-				minx = Math.min(minx,sqr.x);
-				miny = Math.min(miny,sqr.y);
-				maxx = Math.max(maxx,sqr.x);
-				maxy = Math.max(maxy,sqr.y);
+			this.forEach(function (sqr) {
+				minx = Math.min(minx, sqr.x);
+				miny = Math.min(miny, sqr.y);
+				maxx = Math.max(maxx, sqr.x);
+				maxy = Math.max(maxy, sqr.y);
 			});
 
-			for (var x = 0; x < maxx - minx +1; x++) {
+			for (var x = 0; x < maxx - minx + 1; x++) {
 				/*jshint boss: true*/
 				out[x] = [];
-				for (var y = 0; y < maxy - miny +1; y++) {
-					if(csqr = this.squareAt(x+minx,y+miny)){
+				for (var y = 0; y < maxy - miny + 1; y++) {
+					if (csqr = this.squareAt(x + minx, y + miny)) {
 						out[x][y] = csqr.typeint;
-					}else{
+					} else {
 						out[x][y] = -1;
 					}
 				}
 			}
 			return out;
 		},
-		toJSON: function() {
+		toJSON: function () {
 			var out = [];
-			this.forEach(function(sqr) {
-				out.push(JSON.parse(JSON.stringify(sqr,['x','y','typeint'])));
+			this.forEach(function (sqr) {
+				out.push(JSON.parse(JSON.stringify(sqr, ['x', 'y', 'typeint'])));
 			});
 			return out;
 		}
 	};
+
 	// constructor constructor - inception!!
 	function Tile() {
 		/*jshint sub: true */
-		var con = function Square(x,y) {
+		var con = function Square(x, y) {
 			this.x = x;
 			this.y = y;
 			this.img = undefined;
@@ -218,76 +146,159 @@ $(function() {
 		// instead of the next two lines
 		// you will lose the ability to call myTile.draw()
 		con.prototype = con;
-		con['__proto__'] = Tile.prototype; 
+		con['__proto__'] = Tile.prototype;
 
 		return con;
 	}
 	Tile.prototype = {
-		draw: function(ctx,x,y){
+		draw: function (ctx, x, y) {
 			x = x || this.x || 0;
 			y = y || this.y || 0;
 			ctx.save();
-			ctx.translate(this.x*UNIT,this.y*UNIT);
+			ctx.translate(this.x * UNIT, this.y * UNIT);
 			ctx.fillStyle = this.color;
-			if(this.img){
-				ctx.drawImage(this.img,0,0);
-			}else{
-				ctx.fillRect(0,0,UNIT,UNIT);
+			if (this.img) {
+				ctx.drawImage(this.img, 0, 0);
+			} else {
+				ctx.fillRect(0, 0, UNIT, UNIT);
 			}
 			ctx.restore();
 		},
 		color: 'white'
 	};
 
+	//tileset
+	var tileset = [];
+
+	tileset.ui = new UiListElement();
+
+	tileset.addTile = function (tile) {
+		var image;
+		tile.typeint = this.length;
+		this.push(tile);
+
+		if (tile.img) {
+			image = new Image();
+			image.src = tile.img.src;
+		} else {
+			image = document.createElement('canvas');
+			image.width = image.height = UNIT;
+			tile.draw(image.getContext('2d'));
+		}
+		this.ui.addLi(image);
+		$(image).click(function () {
+			currentTile = tile;
+			$(this).parent().addClass("selected").siblings().removeClass("selected");
+		});
+	};
+	tileset.importFromImage = function (img) {
+		var tile = new Tile();
+
+		tile.img = new Image();
+		tile.img.src = img.src;
+
+		this.addTile();
+	};
+
+	//UI builder
+	var UI = {
+		tools: {
+			tiles: tileset.ui,
+			title: "Tools"
+		},
+		minimap: {
+			title: "MINIMAP",
+			minimap: minimap
+		}
+	};
+
+	function setupUI(UI) {
+		var $overlay = $("#overlay");
+		var id, obj, el, h = 2;
+
+		var process = function (el, obj, id, h) {
+			if (obj.domElement) {
+				el.append(obj.domElement);
+			} else {
+				if (obj.title) {
+					el.append($('<h' + h + '>' + obj.title + '</h' + h + '>'));
+				}
+				for (var subid in obj) {
+					if (obj[subid] !== obj.title) {
+						process(el, obj[subid], subid, h + 1);
+					}
+				}
+			}
+		};
+
+		for (id in UI) {
+			obj = UI[id];
+			if (obj.domElement) {
+				el = obj.domElement;
+			} else {
+				if (obj.title) {
+					el = $('<aside id="' + id + '">');
+				} else {
+					el = $('<div id="' + id + '">');
+				}
+				process(el, obj, id, h);
+			}
+			$overlay.append(el);
+		}
+	}
+	setupUI(UI);
+
+	$("#overlay > aside").draggable({ handle: 'h2' });
+
 	var currentGrid = new Grid();
 	currentTile = new Tile();
 	var blueTile = new Tile();
 	blueTile.color = 'blue';
-	tiles.addTile(currentTile);
-	tiles.addTile(blueTile);
+	tileset.addTile(currentTile);
+	tileset.addTile(blueTile);
 
 	//click handling
-	function doStuffAt(x,y){
-		ctx0.save();
-		ctx0.translate(-topleft.x,-topleft.y);
-		if(mode == 'addtile'){
-			var newSquare = new currentTile(x,y);
+	function doStuffAt(x, y, ctx) {
+		ctx.save();
+		ctx.translate(-ctx.topleft.x, -ctx.topleft.y);
+		if (mode == 'addtile') {
+			var newSquare = new currentTile(x, y);
 			currentGrid.addSquare(newSquare);
-			newSquare.draw(ctx0);
-		}else if(mode == 'removetile'){
-			ctx0.clearRect(x*UNIT,y*UNIT,UNIT,UNIT);
-			currentGrid.removeSquare(x,y);
+			newSquare.draw(ctx);
+		} else if (mode == 'removetile') {
+			ctx.clearRect(x * UNIT, y * UNIT, UNIT, UNIT);
+			currentGrid.removeSquare(x, y);
 		}
-		ctx0.restore();
+		ctx.restore();
 	}
 
-	function restoreMode () {
-		if(mode != 'drag'){
+	function restoreMode() {
+		if (mode != 'drag') {
 			mode = hardmode;
 			minimap.redraw();
 		}
 	}
-	doc.mousemove(function(e) {
+	doc.mousemove(function (e) {
 		var pos = $layer0.offset();
-		var x = unitify(e.pageX - (pos.left-topleft.x));
-		var y = unitify(e.pageY - (pos.top-topleft.y));
-		if(mode == 'addtile' || mode == 'removetile'){
-			doStuffAt(x,y);
+		var x = unitify(e.pageX - (pos.left - ctx0.topleft.x));
+		var y = unitify(e.pageY - (pos.top - ctx0.topleft.y));
+		if (mode == 'addtile' || mode == 'removetile') {
+			doStuffAt(x, y, ctx0);
 		}
 
 	});
 
-	$layer0.mousedown(function(e) {
+	$layer0.mousedown(function (e) {
 		var pos = $layer0.offset();
-		var x = unitify(e.pageX - (pos.left-topleft.x));
-		var y = unitify(e.pageY - (pos.top-topleft.y));	
-		if (mode == 'edit'){
-			if(currentGrid.squareAt(x,y) === undefined){
+		var x = unitify(e.pageX - (pos.left - ctx0.topleft.x));
+		var y = unitify(e.pageY - (pos.top - ctx0.topleft.y));
+		if (mode == 'edit') {
+			if (currentGrid.squareAt(x, y) === undefined) {
 				mode = 'addtile';
-			}else{
+			} else {
 				mode = 'removetile';
 			}
-			doStuffAt(x,y);
+			doStuffAt(x, y, ctx0);
 		}
 	});
 
@@ -298,109 +309,117 @@ $(function() {
 
 	//Drag map
 
-	var fixSize = function (){ //TODO: probably want to break this up
-		var p, imagedata,
+	var fixSize = function (canvas) { //TODO: probably want to break this up
+		var p, imagedata, ctx = canvas.getContext('2d'),
 		leftDelta, leftmove, leftPos,
 		topDelta, topmove, topPos;
 
-		p = $layer0.offset();
-		
-		if(p.left > 0){
+		p = $(canvas).offset();
+
+		if (p.left > 0) {
 			leftDelta = p.left;
-			topleft.x -= p.left;
+			ctx.topleft.x -= p.left;
 			leftmove = p.left;
 			leftPos = 0;
-		}else{
-			if (doc.width() > layer0.width + p.left){
-				leftDelta = doc.width() - (layer0.width + p.left);
-			}else{
+
+		} else {
+			if (doc.width() > canvas.width + p.left) {
+				leftDelta = doc.width() - (canvas.width + p.left);
+			} else {
 				leftDelta = 0;
 			}
 			leftmove = 0;
 			leftPos = p.left;
 		}
 
-		if(p.top > 0){
+		if (p.top > 0) {
 			topDelta = p.top;
-			topleft.y -= p.top;
+			ctx.topleft.y -= p.top;
 			topmove = p.top;
 			topPos = 0;
-		}else{
-			if (doc.height() > layer0.height + p.top){
-				topDelta = doc.height() - (layer0.height + p.top);
-			}else{
+
+		} else {
+			if (doc.height() > canvas.height + p.top) {
+				topDelta = doc.height() - (canvas.height + p.top);
+			} else {
 				topDelta = 0;
 			}
 			topmove = 0;
 			topPos = p.top;
 		}
 
-		imagedata = ctx0.getImageData(0, 0, layer0.width, layer0.height);
+		imagedata = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-		layer0.width = layer0.width + leftDelta;
-		layer0.height = layer0.height + topDelta;
-		$layer0.offset({left:leftPos,top:topPos});
+		canvas.width = canvas.width + leftDelta;
+		canvas.height = canvas.height + topDelta;
+		$(canvas).offset({left: leftPos, top: topPos});
 
-		ctx0.putImageData(imagedata, leftmove, topmove);
+		ctx.putImageData(imagedata, leftmove, topmove);
 	};
 
 	$layer0.draggable({
-		stop: function(e, ui){
-			fixSize();
+		stop: function (e, ui) {
+			fixSize(layer0);
 			minimap.redraw();
 		},
-		drag: function(){
+		drag: function () {
 			minimap.movebox();
 		},
 		//cursor: 'move',
 		disabled: true
 	});
 
-	doc.bind("keydown", function(e) {
+	doc.bind("keydown", function (e) {
 		var key = e.keyCode || e.which;
-		if(key == DRAG_KEY){
+
+		if (key == DRAG_KEY) {
 			$layer0.draggable('enable');
-			$layer0.css( 'cursor', 'move' );
+			$layer0.css('cursor', 'move');
 			mode = 'drag';
 		}
 	});
 
-	doc.bind("keyup", function(e) {
+	doc.bind("keyup", function (e) {
 		var key = e.keyCode || e.which;
-		if(key == DRAG_KEY){
+
+		if (key == DRAG_KEY) {
 			$layer0.draggable('disable');
-			$layer0.css( 'cursor', 'default' );
+			$layer0.css('cursor', 'default');
 			mode = hardmode;
 		}
 	});
 
-	$(window).resize(fixSize);
+	$(window).resize(function () {
+		fixSize(layer0);
+	});
 
 	//Exporter
 	var exporter = {};
-	
-	exporter.getCSV = function(grid) {
+
+	exporter.getCSV = function (grid) {
 		var ary = grid.getArray();
 		var out = '';
-		
-		if(!ary.length) return '';
+
+		if (!ary.length) {
+			return '';
+		}
 
 		for (var y = 0; y < ary[0].length; y++) {
-			for (var x = 0; x < ary.length-1; x++) {
-				out += ary[x][y] +",";
+			for (var x = 0; x < ary.length - 1; x++) {
+				out += ary[x][y] + ",";
 			}
-			out += ary[ary.length-1][y]+"\n";
+			out += ary[ary.length - 1][y] + "\n";
 		}
 		return out;
 	};
 	exporter.getCSV.ext = ".csv";
 
-	exporter.getJSON = function(grid) {
+	exporter.getJSON = function (grid) {
 		return JSON.stringify(grid);
 	};
 	exporter.getJSON.ext = ".json";
 
-	exporter.getIntArray = function(grid) {
+	exporter.getIntArray = function (grid) {
 		var ary = grid.getArray();
 		var out = "[\n" + JSON.stringify(ary[0]);
 
@@ -412,73 +431,74 @@ $(function() {
 	};
 	exporter.getIntArray.ext = ".array.json";
 
-	exporter.createFile = function(input) { //returns URL
+	exporter.createFile = function (input) { //returns URL
 		var MIME_TYPE = 'text/plain';
-		
+
 		window.URL = window.webkitURL || window.URL;
 		window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder ||
 							window.MozBlobBuilder;
-	
+
 		var bb = new window.BlobBuilder();
+
 		bb.append(input);
 		return window.URL.createObjectURL(bb.getBlob(MIME_TYPE));
-	
-		
+
+
 	};
 
-	exporter.destroyFile = function(url) {
+	exporter.destroyFile = function (url) {
 		window.URL.revokeObjectURL(url);
 	};
 
 	// this is a massive peice of shit
 	// tried to be a smart ass and it kind of worked but mostly sucks
-	exporter.createLink = function(grid, stringer) {
+	exporter.createLink = function (grid, stringer) {
 		var MIME_TYPE = 'text/plain';
 
-		var makeurl = function(){
+		var makeurl = function () {
 			var str = stringer(grid);
 			var file = exporter.createFile(str);
 			return file;
 		};
-		
-		document.body.addEventListener('dragstart', function(e) {
+
+		document.body.addEventListener('dragstart', function (e) {
 			var a = e.target;
 			var downloadurl = [MIME_TYPE, a.download, a.href = makeurl()].join(':');
 			if (a.classList.contains('dragout')) {
 				e.dataTransfer.setData('DownloadURL', downloadurl);
 			}
 		}, false);
-		 
-		document.body.addEventListener('dragend', function(e) {
+
+		document.body.addEventListener('dragend', function (e) {
 			var a = e.target;
 			if (a.classList.contains('dragout')) {
-				setTimeout(function() {
+				setTimeout(function () {
 					exporter.destroyFile(a.href);
 				}, 1500);
 			}
 		}, false);
-		
+
 		var a = document.createElement('a');
 		a.download = (grid.name || 'map') + stringer.ext;
 		a.href = a.download;
 		a.textContent = a.download;
 		a.draggable = true; // Don't really need, but good practice.
 		a.classList.add('dragout');
-	
-		a.onclick = function(e) {
+
+		a.onclick = function (e) {
 			this.href = makeurl();
-			setTimeout(function() {
+			setTimeout(function () {
 				exporter.destroyFile(this.href);
 			}, 1500);
 			//return false;
 		};
-
 		return a;
+
 	};
 	exporter.ui = new UiListElement();
-	exporter.ui.addLi(exporter.createLink(currentGrid,exporter.getCSV));
-	exporter.ui.addLi(exporter.createLink(currentGrid,exporter.getJSON));
-	exporter.ui.addLi(exporter.createLink(currentGrid,exporter.getIntArray));
+	exporter.ui.addLi(exporter.createLink(currentGrid, exporter.getCSV));
+	exporter.ui.addLi(exporter.createLink(currentGrid, exporter.getJSON));
+	exporter.ui.addLi(exporter.createLink(currentGrid, exporter.getIntArray));
 	$('#tools').append('<h3>exporter<h3>');
 	$('#tools').append(exporter.ui.domElement);
 
