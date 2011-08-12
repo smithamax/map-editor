@@ -2,11 +2,6 @@
 
 
 $(function () {
-	var layer0 = document.getElementById("layer0");
-	var ctx0 = layer0.getContext("2d");
-	ctx0.topleft = {x: 0, y: 0};
-
-	var $layer0 = $(layer0);
 	var doc = $(document);
 	var DRAG_KEY = 32; //Key.SPACE;
 	var UNIT = 24;
@@ -40,11 +35,11 @@ $(function () {
 		canvas: document.createElement('canvas'),
 		viewbox: document.createElement('canvas'),
 		redraw: function () {
-			this.canvas.width = layer0.width / UNIT;
-			this.canvas.height = layer0.height / UNIT;
+			this.canvas.width = layers.current.canvas.width / UNIT;
+			this.canvas.height = layers.current.canvas.height / UNIT;
 			this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 			this.ctx.save();
-			this.ctx.drawImage(layer0, 0, 0, this.canvas.width, this.canvas.height);
+			this.ctx.drawImage(layers.current.canvas, 0, 0, this.canvas.width, this.canvas.height);
 			this.ctx.restore();
 			this.rebox();
 		},
@@ -66,7 +61,7 @@ $(function () {
 
 		},
 		movebox: function () {
-			var p = $layer0.offset();
+			var p = layers.getPos();
 			$(this.viewbox).css('position', 'absolute');
 			$(this.viewbox).css('left', -p.left / UNIT);
 			$(this.viewbox).css('top', -p.top / UNIT);
@@ -77,10 +72,6 @@ $(function () {
 		.append(minimap.canvas)
 		.append(minimap.viewbox);
 	minimap.ctx = minimap.canvas.getContext('2d');
-
-	// size canvas
-	layer0.width = doc.width();
-	layer0.height = doc.height();
 
 
 	function unitify(n) {
@@ -217,26 +208,40 @@ $(function () {
 		width = Math.ceil(doc.width() / UNIT) * UNIT;
 		height = Math.ceil(doc.height() / UNIT) * UNIT;
 
+		var container = $('<div id="layers-container">');
+		container.css('position', 'relative');
+		container.css('top', 0).css('left', 0);
+		$('#container').append(container);
 		var uiList = new UiListElement();
 
 		var pub = {
 			addLayer: function (name) {
+				var layer;
 				var canvas = document.createElement('canvas');
 				var ctx = canvas.getContext('2d');
 
 				canvas.width = width;
 				canvas.height = height;
 				canvas.layerName = name || 'untitled';
-
+				$(canvas).css('position', 'relative');
+				$(canvas).css('top', 0).css('left', 0);
 				ctx.topleft = {x: left, y: top};
+
 				var li = uiList.addLi(name);
 				li.num = layerList.length;
+				container.append(canvas);
 
-				layerList.push(canvas);
+				layer = {
+					canvas: canvas,
+					ctx: ctx
+				};
+
+				layerList.push(layer);
 			},
 			ui: {
 				list: uiList,
-				adder: {domElement: $('<button>')[0]}
+				adder: {domElement: $('<button>')[0]},
+				container: container
 			},
 			show: function (n) {
 				$(layerList[n]).removeClass('hidden');
@@ -253,11 +258,11 @@ $(function () {
 				height += topDelta;
 
 				layerList.forEach(function (layer) {
-					var ctx = layer.getContext('2d');
-					var imagedata = ctx.getImageData(0, 0, layer.width, layer.height);
+					var ctx = layer.ctx;
+					var imagedata = ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
 
 					ctx.topleft = {x: left, y: top};
-					layer.height = height;
+					layer.canvas.height = height;
 					ctx.putImageData(imagedata, 0, topDelta);
 				});
 			},
@@ -266,11 +271,11 @@ $(function () {
 				width += leftDelta;
 
 				layerList.forEach(function (layer) {
-					var ctx = layer.getContext('2d');
-					var imagedata = ctx.getImageData(0, 0, layer.width, layer.height);
+					var ctx = layer.ctx;
+					var imagedata = ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
 
 					ctx.topleft = {x: left, y: top};
-					layer.width = width;
+					layer.canvas.width = width;
 					ctx.putImageData(imagedata, leftDelta, 0);
 				});
 			},
@@ -278,39 +283,46 @@ $(function () {
 				height += bottomDelta;
 
 				layerList.forEach(function (layer) {
-					layer.height = height;
+					layer.canvas.height = height;
 				});
 			},
 			addRight: function (rightDelta) {
 				width += rightDelta;
 
 				layerList.forEach(function (layer) {
-					layer.width = width;
+					layer.canvas.width = width;
 				});
 			},
 			setPos: function (x, y) {
-				$(layerList).offset({top: y, left: x});
+				container.css('top', y).css('left', x);
 				if (pub.autoresize) {
 					pub.resize();
 				}
 			},
 			getPos: function () {
-				$(layerList[0]).offset();
+				return container.position();
 			},
 			resize: function () {
 				var p = pub.getPos();
 				if (p.left > 0) {
+					console.log('left');
 					pub.addLeft(p.left);
+					pub.setPos(0, p.top);
 				}
 				if (p.top > 0) {
-					pub.addLeft(p.top);
+					console.log('top', container.css('top'));
+					pub.addTop(p.top);
+					pub.setPos(p.left, 0);
 				}
 				if (doc.width() > width + p.left) {
+					console.log('right', doc.width() - (width + p.left));
 					pub.addRight(doc.width() - (width + p.left));
 				}
 				if (doc.height() > height + p.top) {
+					console.log('bottom', doc.height() - (height + p.top));
 					pub.addBottom(doc.height() - (height + p.top));
 				}
+				console.log(p.top, p.left, height, width);
 
 			},
 			autoresize: true
@@ -323,6 +335,9 @@ $(function () {
 		return pub;
 	})();
 
+	layers.addLayer('layer1');
+	layers.setCurrent(0);
+	layers.resize();
 
 	//UI builder
 	var UI = {
@@ -403,26 +418,30 @@ $(function () {
 		}
 	}
 	doc.mousemove(function (e) {
-		var pos = $layer0.offset();
-		var x = unitify(e.pageX - (pos.left - ctx0.topleft.x));
-		var y = unitify(e.pageY - (pos.top - ctx0.topleft.y));
+		var pos = layers.getPos();
+		var ctx = layers.current.ctx;
+
+		var x = unitify(e.pageX - (pos.left - ctx.topleft.x));
+		var y = unitify(e.pageY - (pos.top - ctx.topleft.y));
 		if (mode == 'addtile' || mode == 'removetile') {
-			doStuffAt(x, y, ctx0);
+			doStuffAt(x, y, ctx);
 		}
 
 	});
 
-	$layer0.mousedown(function (e) {
-		var pos = $layer0.offset();
-		var x = unitify(e.pageX - (pos.left - ctx0.topleft.x));
-		var y = unitify(e.pageY - (pos.top - ctx0.topleft.y));
+	layers.ui.container.mousedown(function (e) {
+		var pos = layers.getPos();
+		var ctx = layers.current.ctx;
+		console.log(pos, ctx);
+		var x = unitify(e.pageX - (pos.left - ctx.topleft.x));
+		var y = unitify(e.pageY - (pos.top - ctx.topleft.y));
 		if (mode == 'edit') {
 			if (currentGrid.squareAt(x, y) === undefined) {
 				mode = 'addtile';
 			} else {
 				mode = 'removetile';
 			}
-			doStuffAt(x, y, ctx0);
+			doStuffAt(x, y, ctx);
 		}
 	});
 
@@ -481,9 +500,9 @@ $(function () {
 		ctx.putImageData(imagedata, leftmove, topmove);
 	};
 
-	$layer0.draggable({
+	layers.ui.container.draggable({
 		stop: function (e, ui) {
-			fixSize(layer0);
+			layers.resize();
 			minimap.redraw();
 		},
 		drag: function () {
@@ -497,8 +516,8 @@ $(function () {
 		var key = e.keyCode || e.which;
 
 		if (key == DRAG_KEY) {
-			$layer0.draggable('enable');
-			$layer0.css('cursor', 'move');
+			layers.ui.container.draggable('enable');
+			layers.ui.container.css('cursor', 'move');
 			mode = 'drag';
 		}
 	});
@@ -507,14 +526,14 @@ $(function () {
 		var key = e.keyCode || e.which;
 
 		if (key == DRAG_KEY) {
-			$layer0.draggable('disable');
-			$layer0.css('cursor', 'default');
+			layers.ui.container.draggable('disable');
+			layers.ui.container.css('cursor', 'default');
 			mode = hardmode;
 		}
 	});
 
 	$(window).resize(function () {
-		fixSize(layer0);
+		layers.resize();
 	});
 
 	//Exporter
