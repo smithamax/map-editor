@@ -14,14 +14,24 @@ $(function () {
 	var hardmode = 'edit';
 	var currentTile;
 
+
 	//UI base element
 	function UiListElement() {
 		this.domElement = $('<ul>');
+		this.onclick = function () {};
+
 		this.addLi = function (content) {
 			var li = $('<li>');
 			li.append($(content));
 			this.domElement.append(li);
+			return li;
 		};
+		var self = this;
+
+		this.domElement.delegate('li', 'click', function (e) {
+			$(this).addClass("selected").siblings().removeClass("selected");
+			self.onclick.apply(this, e);
+		});
 	}
 
 
@@ -197,8 +207,122 @@ $(function () {
 		tile.img = new Image();
 		tile.img.src = img.src;
 
-		this.addTile();
+		this.addTile(tile);
 	};
+
+	// Layers
+	var layers = (function () {
+		var layerList = [];
+		var top = 0, left = 0, width, height;
+		width = Math.ceil(doc.width() / UNIT) * UNIT;
+		height = Math.ceil(doc.height() / UNIT) * UNIT;
+
+		var uiList = new UiListElement();
+
+		var pub = {
+			addLayer: function (name) {
+				var canvas = document.createElement('canvas');
+				var ctx = canvas.getContext('2d');
+
+				canvas.width = width;
+				canvas.height = height;
+				canvas.layerName = name || 'untitled';
+
+				ctx.topleft = {x: left, y: top};
+				var li = uiList.addLi(name);
+				li.num = layerList.length;
+
+				layerList.push(canvas);
+			},
+			ui: {
+				list: uiList,
+				adder: {domElement: $('<button>')[0]}
+			},
+			show: function (n) {
+				$(layerList[n]).removeClass('hidden');
+			},
+			hide: function (n) {
+				$(layerList[n]).addClass('hidden');
+			},
+			setCurrent: function (n) {
+				pub.current = layerList[n];
+			},
+			current: {},
+			addTop: function (topDelta) {
+				top -= topDelta;
+				height += topDelta;
+
+				layerList.forEach(function (layer) {
+					var ctx = layer.getContext('2d');
+					var imagedata = ctx.getImageData(0, 0, layer.width, layer.height);
+
+					ctx.topleft = {x: left, y: top};
+					layer.height = height;
+					ctx.putImageData(imagedata, 0, topDelta);
+				});
+			},
+			addLeft: function (leftDelta) {
+				left -= leftDelta;
+				width += leftDelta;
+
+				layerList.forEach(function (layer) {
+					var ctx = layer.getContext('2d');
+					var imagedata = ctx.getImageData(0, 0, layer.width, layer.height);
+
+					ctx.topleft = {x: left, y: top};
+					layer.width = width;
+					ctx.putImageData(imagedata, leftDelta, 0);
+				});
+			},
+			addBottom: function (bottomDelta) {
+				height += bottomDelta;
+
+				layerList.forEach(function (layer) {
+					layer.height = height;
+				});
+			},
+			addRight: function (rightDelta) {
+				width += rightDelta;
+
+				layerList.forEach(function (layer) {
+					layer.width = width;
+				});
+			},
+			setPos: function (x, y) {
+				$(layerList).offset({top: y, left: x});
+				if (pub.autoresize) {
+					pub.resize();
+				}
+			},
+			getPos: function () {
+				$(layerList[0]).offset();
+			},
+			resize: function () {
+				var p = pub.getPos();
+				if (p.left > 0) {
+					pub.addLeft(p.left);
+				}
+				if (p.top > 0) {
+					pub.addLeft(p.top);
+				}
+				if (doc.width() > width + p.left) {
+					pub.addRight(doc.width() - (width + p.left));
+				}
+				if (doc.height() > height + p.top) {
+					pub.addBottom(doc.height() - (height + p.top));
+				}
+
+			},
+			autoresize: true
+		};
+
+		uiList.onclick = function () {
+			pub.setCurrent(this.num);
+		};
+
+		return pub;
+	})();
+
 
 	//UI builder
 	var UI = {
