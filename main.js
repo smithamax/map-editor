@@ -4,7 +4,7 @@
 $(function () {
     var doc = $(document);
     var DRAG_KEY = 32; //Key.SPACE;
-    var UNIT = 24;
+    var UNIT = 32;
     var mode = 'edit';
     var hardmode = 'edit';
     var currentTile;
@@ -13,7 +13,7 @@ $(function () {
     //UI base element
     function UiListElement() {
         this.domElement = $('<ul>');
-        this.onclick = function () {};
+        this.onclick = function (e) {};
 
         this.addLi = function (content) {
             var li = $('<li>');
@@ -25,7 +25,7 @@ $(function () {
 
         this.domElement.delegate('li', 'click', function (e) {
             $(this).addClass("selected").siblings().removeClass("selected");
-            self.onclick.apply(this, e);
+            self.onclick.apply(this, [e]);
         });
     }
 
@@ -96,7 +96,7 @@ $(function () {
         var con = function Square(x, y) {
             this.x = x;
             this.y = y;
-            this.img = undefined;
+            //this.img = undefined;
         };
         // so __proto__ is kinda evil I know,
         // if you dont want to use it you can use
@@ -136,14 +136,10 @@ $(function () {
         tile.typeint = this.length;
         this.push(tile);
 
-        if (tile.img) {
-            image = new Image();
-            image.src = tile.img.src;
-        } else {
-            image = document.createElement('canvas');
-            image.width = image.height = UNIT;
-            tile.draw(image.getContext('2d'));
-        }
+        image = document.createElement('canvas');
+        image.width = image.height = UNIT;
+        tile.draw(image.getContext('2d'));
+
         this.ui.addLi(image);
         $(image).click(function () {
             currentTile = tile;
@@ -181,25 +177,27 @@ $(function () {
                 canvas.width = width;
                 canvas.height = height;
                 canvas.layerName = name || 'untitled';
-                $(canvas).css('position', 'relative');
+                $(canvas).css('position', 'absolute');
                 $(canvas).css('top', 0).css('left', 0);
                 ctx.topleft = {x: left, y: top};
 
-                var li = uiList.addLi(canvas.layerName);
+                var li = uiList.addLi("<input type=checkbox>" + canvas.layerName + "</input>");
                 li.data('num', layerList.length);
                 container.append(canvas);
 
                 layer = {
                     canvas: canvas,
                     ctx: ctx,
-                    z: layerList.length
+                    z: layerList.length,
+                    grid: new Grid()
                 };
+                layer.grid.name = canvas.layerName;
 
                 layerList.push(layer);
             },
             ui: {
                 list: uiList,
-                adder: {domElement: $('<button>')[0]},
+                adder: {domElement: $('<button>Addlayer</button>')[0]},
                 container: container
             },
             show: function (n) {
@@ -286,17 +284,24 @@ $(function () {
                 }
 
             },
-            autoresize: true
+            autoresize: true,
+            forEach: function (callback) {
+                layerList.forEach(function (layer) {
+                    callback(layer);
+                });
+            }
         };
 
         uiList.onclick = function () {
-            pub.setCurrent(this.num);
+            pub.setCurrent($(this).data('num'));
         };
 
         return pub;
     })();
 
     layers.addLayer('layer1');
+    layers.addLayer('layer2');
+    layers.addLayer('layer3');
     layers.setCurrent(0);
     layers.resize();
 
@@ -346,15 +351,18 @@ $(function () {
 
     //UI builder
     var UI = {
-        tools: {
+        tiles: {
             tiles: tileset.ui,
-            layers: layers.ui.list,
-            layeradder: layers.ui.adder,
-            title: "Tools"
+            title: "Tiles"
         },
         minimap: {
             title: "MINIMAP",
             minimap: minimap
+        },
+        tools: {
+            title: "Tools",
+            layers: layers.ui.list,
+            layeradder: layers.ui.adder
         }
     };
 
@@ -396,24 +404,45 @@ $(function () {
 
     $("#overlay > aside").draggable({ handle: 'h2' });
 
-    var currentGrid = new Grid();
-    currentTile = new Tile();
-    var blueTile = new Tile();
-    blueTile.color = 'blue';
-    tileset.addTile(currentTile);
-    tileset.addTile(blueTile);
+    var tileImage = new Image();
+    var tileImageLoaded = function () {
+        var n = (tileImage.width / UNIT) * (tileImage.height / UNIT);
+        var w = (tileImage.width / UNIT);
+        var tile, ctx;
+        for (var i = 0; i < n; i++) {
+            tile = new Tile();
+            tile.img = document.createElement('canvas');
+            ctx = tile.img.getContext('2d');
+
+            // Draw slice
+            ctx.drawImage(tileImage,
+            (i % w) * UNIT, Math.floor(i / w) * UNIT, UNIT, UNIT, 0, 0, UNIT, UNIT);
+            tileset.addTile(tile);
+        }
+    };
+    tileImage.onload = tileImageLoaded;
+    tileImage.src = "Tiles.png";
+    //tileImageLoaded();
+    //var currentGrid = new Grid();
+    //currentTile = new Tile();
+    //var blueTile = new Tile();
+    //blueTile.color = 'blue';
+    //tileset.addTile(currentTile);
+    //tileset.addTile(blueTile);
 
     //click handling
-    function doStuffAt(x, y, ctx) {
+    function doStuffAt(x, y, layer) {
+        var ctx = layer.ctx;
+        var grid = layer.grid;
         ctx.save();
         ctx.translate(-ctx.topleft.x, -ctx.topleft.y);
         if (mode == 'addtile') {
             var newSquare = new currentTile(x, y);
-            currentGrid.addSquare(newSquare);
+            grid.addSquare(newSquare);
             newSquare.draw(ctx);
         } else if (mode == 'removetile') {
             ctx.clearRect(x * UNIT, y * UNIT, UNIT, UNIT);
-            currentGrid.removeSquare(x, y);
+            grid.removeSquare(x, y);
         }
         ctx.restore();
     }
@@ -427,11 +456,10 @@ $(function () {
     doc.mousemove(function (e) {
         var pos = layers.getPos();
         var ctx = layers.current.ctx;
-
         var x = unitify(e.pageX - (pos.left - ctx.topleft.x));
         var y = unitify(e.pageY - (pos.top - ctx.topleft.y));
         if (mode == 'addtile' || mode == 'removetile') {
-            doStuffAt(x, y, ctx);
+            doStuffAt(x, y, layers.current);
         }
 
     });
@@ -439,15 +467,16 @@ $(function () {
     layers.ui.container.mousedown(function (e) {
         var pos = layers.getPos();
         var ctx = layers.current.ctx;
+        var grid = layers.current.grid;
         var x = unitify(e.pageX - (pos.left - ctx.topleft.x));
         var y = unitify(e.pageY - (pos.top - ctx.topleft.y));
         if (mode == 'edit') {
-            if (currentGrid.squareAt(x, y) === undefined) {
+            if (grid.squareAt(x, y) === undefined) {
                 mode = 'addtile';
             } else {
                 mode = 'removetile';
             }
-            doStuffAt(x, y, ctx);
+            doStuffAt(x, y, layers.current);
         }
     });
 
@@ -555,9 +584,9 @@ $(function () {
 
         for (var y = 0; y < ary[0].length; y++) {
             for (var x = 0; x < ary.length - 1; x++) {
-                out += ary[x][y] + ",";
+                out += ary[x][y]+1 + ",";
             }
-            out += ary[ary.length - 1][y] + "\n";
+            out += ary[ary.length - 1][y]+1 + "\n";
         }
         return out;
     };
@@ -601,6 +630,7 @@ $(function () {
 
     // this is a massive peice of shit
     // tried to be a smart ass and it kind of worked but mostly sucks
+    /*
     exporter.createLink = function (grid, stringer) {
         var MIME_TYPE = 'text/plain';
 
@@ -645,12 +675,24 @@ $(function () {
 
     };
     exporter.ui = new UiListElement();
-    exporter.ui.addLi(exporter.createLink(currentGrid, exporter.getCSV));
-    exporter.ui.addLi(exporter.createLink(currentGrid, exporter.getJSON));
-    exporter.ui.addLi(exporter.createLink(currentGrid, exporter.getIntArray));
+    exporter.ui.addLi(exporter.createLink(layers.current.grid, exporter.getCSV));
+    exporter.ui.addLi(exporter.createLink(layers.current.grid, exporter.getJSON));
+    exporter.ui.addLi(exporter.createLink(layers.current.grid, exporter.getIntArray));
     $('#tools').append('<h3>exporter<h3>');
     $('#tools').append(exporter.ui.domElement);
+    */
 
+    $('#tools').append('<h3>exporter<h3>');
+
+    var exportBtn = $("<button>Export</button>").click(function () {
+        layers.forEach(function (layer) {
+            var link = document.createElement('a');
+            link.href = exporter.createFile(exporter.getCSV(layer.grid));
+            link.innerHTML = layer.grid.name;
+            $('#tools').append(link);
+        });
+    });
+    $('#tools').append(exportBtn);
 
 
 });
