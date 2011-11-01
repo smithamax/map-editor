@@ -1,0 +1,356 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"for",
+				"for: for each"
+			],
+			[
+				"set",
+				"setPos"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "/Users/dom/Dropbox/WebDev/tile-editor/main.js",
+			"settings":
+			{
+				"buffer_size": 19680,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/dom/Dropbox/WebDev/tile-editor/test.html",
+			"settings":
+			{
+				"buffer_size": 1438,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/dom/Dropbox/WebDev/tile-editor/index.html",
+			"settings":
+			{
+				"buffer_size": 968,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "Packages/JSHint/jshint.sublime-build",
+	"command_palette":
+	{
+		"height": 392,
+		"selected_items":
+		[
+			[
+				"ac",
+				"Set Syntax: ActionScript 3"
+			],
+			[
+				"act",
+				"Set Syntax: ActionScript 3"
+			],
+			[
+				"clo",
+				"Project: Close"
+			],
+			[
+				"html",
+				"Set Syntax: HTML"
+			],
+			[
+				"cl",
+				"Project: Close"
+			],
+			[
+				"sav",
+				"Project: Save As"
+			],
+			[
+				"folder",
+				"Project: Add Folder"
+			],
+			[
+				"close",
+				"Project: Close"
+			]
+		],
+		"width": 392
+	},
+	"console":
+	{
+		"height": 122
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": true,
+		"show_open_files": true,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Users/dom/Dropbox/WebDev/tile-editor/.gitignore",
+		"/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/BaseHTTPServer.py",
+		"/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/SimpleHTTPServer.py",
+		"/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/SimpleHTTPSe",
+		"/Users/dom/Dropbox/invoicer/views/invoice"
+	],
+	"find":
+	{
+		"height": 33
+	},
+	"find_in_files":
+	{
+		"height": 0,
+		"include_history":
+		[
+		],
+		"location_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"setpos",
+			"resi",
+			"resiz",
+			"consol",
+			"dra",
+			"container",
+			"css",
+			"layer.he",
+			"ayer",
+			"resize",
+			"console",
+			"layers.current",
+			"layer",
+			"topleft",
+			"dragg",
+			"consol",
+			"resize",
+			"fixSize",
+			"width",
+			"layers.redra",
+			"redraw",
+			"ctx0",
+			"layer0",
+			"poo",
+			"layer",
+			"layers",
+			"topleft",
+			"top",
+			"Top",
+			"top",
+			"Top",
+			"top",
+			"Top",
+			"top",
+			"Top",
+			"top",
+			"Top",
+			"top",
+			"Top",
+			"top",
+			"Top",
+			"top",
+			"Top",
+			"top",
+			"Top",
+			"top",
+			"Top",
+			"top",
+			"Top",
+			"top",
+			"Top",
+			"top",
+			"height",
+			"canvas",
+			"left",
+			"width",
+			"set",
+			"domEl",
+			"save",
+			"width",
+			"console"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer": false,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 2,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "/Users/dom/Dropbox/WebDev/tile-editor/main.js",
+					"settings":
+					{
+						"buffer_size": 19680,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0,
+						"translation.y": 5235,
+						"zoom_level": 1
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "/Users/dom/Dropbox/WebDev/tile-editor/test.html",
+					"settings":
+					{
+						"buffer_size": 1438,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0,
+						"translation.y": 0,
+						"zoom_level": 1
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "/Users/dom/Dropbox/WebDev/tile-editor/index.html",
+					"settings":
+					{
+						"buffer_size": 968,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								59,
+								532
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0,
+						"translation.y": 0,
+						"zoom_level": 1
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0
+	},
+	"input":
+	{
+		"height": 0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0,
+			1
+		],
+		"rows":
+		[
+			0,
+			1
+		]
+	},
+	"menu_visible": true,
+	"replace":
+	{
+		"height": 0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0,
+		"selected_items":
+		[
+		],
+		"width": 0
+	},
+	"select_project":
+	{
+		"height": 500,
+		"selected_items":
+		[
+			[
+				"ic",
+				"/Users/dom/Dropbox/AS3/project-ic/Icarus-farnsworth.sublime-project"
+			],
+			[
+				"",
+				"/Users/dom/Dropbox/JS/GameSoupTest/optoad.sublime-project.sublime-project"
+			]
+		],
+		"width": 380
+	},
+	"show_minimap": true,
+	"show_open_files": true,
+	"show_tabs": false,
+	"side_bar_visible": true,
+	"side_bar_width": 207.2421875,
+	"status_bar_visible": true
+}
