@@ -484,57 +484,6 @@ $(function () {
     doc.mouseenter(restoreMode);
 
 
-
-    //Drag map
-
-    var fixSize = function (canvas) { //TODO: probably want to break this up
-        var p, imagedata, ctx = canvas.getContext('2d'),
-        leftDelta, leftmove, leftPos,
-        topDelta, topmove, topPos;
-
-        p = $(canvas).offset();
-
-        if (p.left > 0) {
-            leftDelta = p.left;
-            ctx.topleft.x -= p.left;
-            leftmove = p.left;
-            leftPos = 0;
-
-        } else {
-            if (doc.width() > canvas.width + p.left) {
-                leftDelta = doc.width() - (canvas.width + p.left);
-            } else {
-                leftDelta = 0;
-            }
-            leftmove = 0;
-            leftPos = p.left;
-        }
-
-        if (p.top > 0) {
-            topDelta = p.top;
-            ctx.topleft.y -= p.top;
-            topmove = p.top;
-            topPos = 0;
-
-        } else {
-            if (doc.height() > canvas.height + p.top) {
-                topDelta = doc.height() - (canvas.height + p.top);
-            } else {
-                topDelta = 0;
-            }
-            topmove = 0;
-            topPos = p.top;
-        }
-
-        imagedata = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-        canvas.width = canvas.width + leftDelta;
-        canvas.height = canvas.height + topDelta;
-        $(canvas).offset({left: leftPos, top: topPos});
-
-        ctx.putImageData(imagedata, leftmove, topmove);
-    };
-
     layers.ui.container.draggable({
         stop: function (e, ui) {
             layers.resize();
@@ -584,9 +533,9 @@ $(function () {
 
         for (var y = 0; y < ary[0].length; y++) {
             for (var x = 0; x < ary.length - 1; x++) {
-                out += ary[x][y]+1 + ",";
+                out += ary[x][y] + 1 + ",";
             }
-            out += ary[ary.length - 1][y]+1 + "\n";
+            out += ary[ary.length - 1][y] + 1 + "\n";
         }
         return out;
     };
@@ -689,6 +638,8 @@ $(function () {
             var link = document.createElement('a');
             link.href = exporter.createFile(exporter.getCSV(layer.grid));
             link.innerHTML = layer.grid.name;
+            link.download = (layer.grid.name) + ".csv";
+            link.target = "_blank";
             $('#tools').append(link);
         });
     });
